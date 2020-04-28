@@ -13,7 +13,7 @@ public class Es2 {
 
     public static void main(String[] args) throws Exception {
 
-        Configuration conf = new Configuration()
+        Configuration conf = new Configuration();
         Job job1 = Job.getInstance(conf, "Job1");
         job1.setJarByClass(Es2.class);
 
@@ -43,11 +43,11 @@ public class Es2 {
         job1.waitForCompletion(true);
 
 
-        Job job2 = Job.getInstance(conf, "Job2");
-        job2.setJarByClass(Es2.class);
-
-        FileInputFormat.setInputPaths(job2, job1OutputPath);
-
+//        Job job2 = Job.getInstance(conf, "Job2");
+//        job2.setJarByClass(Es2.class);
+//
+//        FileInputFormat.setInputPaths(job2, job1OutputPath);
+//
 //        // Questo mapper deve avere come chiave la coppia settore, anno e come valori la lista composta da:
 //        // - giorno e mese (o anche data completa)
 //        // - volume (punto a)

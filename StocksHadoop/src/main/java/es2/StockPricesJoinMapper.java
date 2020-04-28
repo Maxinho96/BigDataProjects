@@ -11,7 +11,12 @@ public class StockPricesJoinMapper extends Mapper<LongWritable,Text,Text, Text> 
 
     @Override
     protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-        String[] cols = StringUtils.getStrings(value.toString());
+        // Skip the header
+        if(key.get() == 0) {
+            return;
+        }
+
+        String[] cols = value.toString().split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
 
         String ticker = cols[0];
         String close_price = cols[2];
