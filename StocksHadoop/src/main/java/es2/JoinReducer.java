@@ -36,20 +36,14 @@ public class JoinReducer extends Reducer<Text, Text, NullWritable, Text> {
         // Don't do the join if we don't have the sector.
         if(sector != null) {
             // Let's do the join with previous visited values and remaining values.
-            joinWithSector(key, visited, context, sector);
-
-            System.out.println("OK");
-
-            joinWithSector(key, values, context, sector);
+            joinWithSector(visited, context, sector);
+            joinWithSector(values, context, sector);
         }
     }
 
-    private void joinWithSector(Text key, Iterable<Text> values, Context context, String sector) throws IOException, InterruptedException {
+    private void joinWithSector(Iterable<Text> values, Context context, String sector) throws IOException, InterruptedException {
         for(Text value : values) {
             String[] cols = value.toString().split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
-
-            System.out.println(key.toString());
-            System.out.println(value.toString());
 
             String close_price = cols[1];
             String volume = cols[2];
