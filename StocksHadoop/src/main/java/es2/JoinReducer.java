@@ -16,7 +16,7 @@ public class JoinReducer extends Reducer<Text, Text, NullWritable, Text> {
         // Let's find the sector.
         String sector = null;
         // We save in a list the visisted values that are not sector.
-        LinkedList<Text> visited = new LinkedList<Text>();
+        LinkedList<String> visited = new LinkedList<String>();
         for(Text value : values) {
             String[] cols = value.toString().split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
 
@@ -29,7 +29,7 @@ public class JoinReducer extends Reducer<Text, Text, NullWritable, Text> {
                 break;
             }
             else {
-                visited.add(value);
+                visited.add(value.toString());
             }
         }
 
@@ -41,8 +41,8 @@ public class JoinReducer extends Reducer<Text, Text, NullWritable, Text> {
         }
     }
 
-    private void joinWithSector(Iterable<Text> values, Context context, String sector) throws IOException, InterruptedException {
-        for(Text value : values) {
+    private void joinWithSector(Iterable<?> values, Context context, String sector) throws IOException, InterruptedException {
+        for(Object value : values) {
             String[] cols = value.toString().split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
 
             String close_price = cols[1];
