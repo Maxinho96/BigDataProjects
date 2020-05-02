@@ -1,6 +1,6 @@
 package es2;
 
-import javafx.util.Pair;
+//MARCO WATCHES YOU//import javafx.util.Pair;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -26,7 +26,7 @@ public class AggregationsReducer extends Reducer<Text, Text, NullWritable, Text>
         // Qua salvo via via la somma dei volumi per ogni ticker.
         Map<String, Long> tickerToVolumeSum = new HashMap<String, Long>();
         // Qua salvo via via il primo close_price utile e l'ultimo close_price utile per ogni ticker
-        Map<String, Pair<Float, Float>> tickerToClosePrices = new HashMap<String, Pair<Float, Float>>();
+        //MARCO WATCHES YOU//Map<String, Pair<Float, Float>> tickerToClosePrices = new HashMap<String, Pair<Float, Float>>();
         // Qua salvo via via la somma e il conteggio dei close_price.
         float closePricesSum = 0;
         int numClosePrices = 0;
