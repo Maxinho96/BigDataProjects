@@ -36,38 +36,39 @@ public class Es2 {
         job1.setOutputKeyClass(Text.class);
         job1.setOutputValueClass(Text.class);
 
-        Path job1OutputPath = new Path("output/job1Output");
+        Path job1OutputPath = new Path("output/es2Job1Output");
         FileOutputFormat.setOutputPath(job1, job1OutputPath);
         job1OutputPath.getFileSystem(conf).delete(job1OutputPath);
 
         job1.waitForCompletion(true);
 
 
-//        Job job2 = Job.getInstance(conf, "Job2");
-//        job2.setJarByClass(Es2.class);
-//
-//        FileInputFormat.setInputPaths(job2, job1OutputPath);
-//
-//        // Questo mapper deve avere come chiave la coppia settore, anno e come valori la lista composta da:
-//        // - giorno e mese (o anche data completa)
-//        // - volume (punto a)
-//        // - prezzo di chiusura (punti b e c)
-//        job2.setMapperClass(AggregationsMapper.class);
-//        job2.setMapOutputKeyClass(Text.class);
-//        job2.setMapOutputValueClass(Text.class);
-//
-//        job2.setReducerClass(AggregationsReducer.class);
-//        // L'output deve avere come chiave la coppia settore, anno
-//        job2.setOutputKeyClass(Text.class);
-//        // L'output deve avere come valore la tripla volume annuale medio, variazione annuale media, e quotazione
-//        // giornaliera media.
-//        job2.setOutputValueClass(Text.class);
-//
-//        Path job2OutputPath = new Path(args[2]);
-//        FileOutputFormat.setOutputPath(job2, job2OutputPath);
-//        job2OutputPath.getFileSystem(conf).delete(job2OutputPath);
-//
-//        job2.waitForCompletion(true);
+        Job job2 = Job.getInstance(conf, "Job2");
+        job2.setJarByClass(Es2.class);
+
+        FileInputFormat.setInputPaths(job2, job1OutputPath);
+
+        // Questo mapper deve avere come chiave la coppia settore, anno e come valori la lista composta da:
+        // - giorno e mese (o anche data completa)
+        // - volume (punto a)
+        // - prezzo di chiusura (punti b e c)
+        // - ticker (punto b)
+        job2.setMapperClass(AggregationsMapper.class);
+        job2.setMapOutputKeyClass(Text.class);
+        job2.setMapOutputValueClass(Text.class);
+
+        job2.setReducerClass(AggregationsReducer.class);
+        // L'output deve avere come chiave la coppia settore, anno
+        job2.setOutputKeyClass(Text.class);
+        // L'output deve avere come valore la tripla volume annuale medio, variazione annuale media, e quotazione
+        // giornaliera media.
+        job2.setOutputValueClass(Text.class);
+
+        Path job2OutputPath = new Path(args[2]);
+        FileOutputFormat.setOutputPath(job2, job2OutputPath);
+        job2OutputPath.getFileSystem(conf).delete(job2OutputPath);
+
+        job2.waitForCompletion(true);
 
     }
 }
