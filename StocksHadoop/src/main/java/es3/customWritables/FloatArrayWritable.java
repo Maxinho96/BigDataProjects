@@ -1,4 +1,4 @@
-package es1.customWritables;
+package es3.customWritables;
 
 import org.apache.hadoop.io.ArrayWritable;
 import org.apache.hadoop.io.FloatWritable;
@@ -6,7 +6,7 @@ import org.apache.hadoop.io.Text;
 
 import java.util.StringJoiner;
 
-public class FloatArrayWritable extends ArrayWritable {
+public class FloatArrayWritable extends ArrayWritable{
 
     public FloatArrayWritable() {
         super(FloatWritable.class);

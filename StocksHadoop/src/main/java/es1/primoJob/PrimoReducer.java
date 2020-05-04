@@ -42,7 +42,7 @@ public class PrimoReducer extends Reducer<Text, SelectedFieldsOfStockPricesRecor
 		//quotazione massima
 		float maxClose;
 
-		//i tre campi dell'array TextArrayWritable
+		//i tre attributi dell'oggetto SelectedFieldsOfStockPricesRecordWritable ricevuto
 		float closeField;
 		float volumeField;
 		Date dateField;
