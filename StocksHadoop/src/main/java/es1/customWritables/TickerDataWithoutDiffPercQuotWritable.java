@@ -37,8 +37,6 @@ public class TickerDataWithoutDiffPercQuotWritable implements Writable {
         return avgVolume;
     }
 
-
-    @Override
     public void write(DataOutput dataOutput) throws IOException {
         dataOutput.writeUTF(this.ticker);
         dataOutput.writeFloat(this.minClose);
@@ -46,7 +44,6 @@ public class TickerDataWithoutDiffPercQuotWritable implements Writable {
         dataOutput.writeFloat(this.avgVolume);
     }
 
-    @Override
     public void readFields(DataInput dataInput) throws IOException {
         this.ticker = dataInput.readUTF();
         this.minClose = dataInput.readFloat();
