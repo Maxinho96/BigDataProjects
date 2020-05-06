@@ -1,7 +1,5 @@
 package es2;
 
-import javafx.util.Pair;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.StringUtils;
@@ -14,7 +12,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-public class AggregationsReducer extends Reducer<Text, Text, NullWritable, Text> {
+public class AggregationsReducer extends Reducer<Text, Text, Text, Text> {
 
     @Override
     protected void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
@@ -60,10 +58,10 @@ public class AggregationsReducer extends Reducer<Text, Text, NullWritable, Text>
                 tickerToClosePrices.put(ticker, new Pair<Float, Float>(close_price, close_price));
             }
             else {
-                Date oldLeftDate = tickerToDates.get(ticker).getKey();
-                Date oldRightDate = tickerToDates.get(ticker).getValue();
-                float oldLeftClosePrice = tickerToClosePrices.get(ticker).getKey();
-                float oldRightClosePrice = tickerToClosePrices.get(ticker).getValue();
+                Date oldLeftDate = tickerToDates.get(ticker).getFirst();
+                Date oldRightDate = tickerToDates.get(ticker).getSecond();
+                float oldLeftClosePrice = tickerToClosePrices.get(ticker).getFirst();
+                float oldRightClosePrice = tickerToClosePrices.get(ticker).getSecond();
 
                 if(parsedDate.before(oldLeftDate)) {
                     tickerToDates.put(ticker, new Pair<Date, Date>(parsedDate, oldRightDate));
@@ -93,10 +91,10 @@ public class AggregationsReducer extends Reducer<Text, Text, NullWritable, Text>
         // la media di tutti questi valori.
         float allVariationsSum = 0;
         for(Pair<Float, Float> singleClosePrices : tickerToClosePrices.values()) {
-            float singleLeftClosePrice = singleClosePrices.getKey();
-            float singleRightClosePrice = singleClosePrices.getValue();
+            float singleLeftClosePrice = singleClosePrices.getFirst();
+            float singleRightClosePrice = singleClosePrices.getSecond();
 
-            float singleVariation = (singleRightClosePrice - singleLeftClosePrice) / singleLeftClosePrice;
+            float singleVariation = ((singleRightClosePrice - singleLeftClosePrice) / singleLeftClosePrice) * 100;
 
             allVariationsSum += singleVariation;
         }
@@ -107,10 +105,10 @@ public class AggregationsReducer extends Reducer<Text, Text, NullWritable, Text>
         float closePricesAvg = closePricesSum / numClosePrices;
         String closePricesOutput = String.format(Locale.ROOT, "%.2f", closePricesAvg);
 
-        String outputString = StringUtils.arrayToString(new String[] {key.toString(), volumeOutput, variationOutput, closePricesOutput});
+        String outputString = StringUtils.arrayToString(new String[] {volumeOutput, variationOutput, closePricesOutput});
         Text outputValue = new Text(outputString);
 
-        context.write(NullWritable.get(), outputValue);
+        context.write(key, outputValue);
     }
 
 }
