@@ -1,7 +1,7 @@
 package es3.primoJob;
 
 import es3.customExceptions.ParseStockPricesRecordException;
-import es3.customWritables.SelectedFieldsOfStockPricesRecordWritable;
+import es3.customWritables.TextArrayWritable;
 import es3.domainObjects.StockPricesRecord;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -15,13 +15,14 @@ import java.util.Date;
 import java.util.StringTokenizer;
 
 @Slf4j
-public class PrimoMapper extends Mapper<LongWritable, Text, Text, SelectedFieldsOfStockPricesRecordWritable> {
+public class PrimoMapperVariazioni extends Mapper<LongWritable, Text, Text, TextArrayWritable> {
 
+    private static final String TAB_VARIAZIONI = "variazioni";
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private Date minDate = simpleDateFormat.parse("2016-01-01");
     private Date maxDate = simpleDateFormat.parse("2018-12-31");
 
-    public PrimoMapper() throws ParseException {}
+    public PrimoMapperVariazioni() throws ParseException {}
 
     @SneakyThrows
     @Override
@@ -42,14 +43,13 @@ public class PrimoMapper extends Mapper<LongWritable, Text, Text, SelectedFields
             return;
         }
 
-        //costruisco l'oggetto da passare al reducer con i campi utili del record letto
-        SelectedFieldsOfStockPricesRecordWritable selectedFieldsOfStockPricesRecordWritable = new SelectedFieldsOfStockPricesRecordWritable(
-                stockPricesRecord.getClose(),
-                this.simpleDateFormat.format(stockPricesRecord.getDate())
-        );
+        //costruisco l'array di stringhe da passare al reducer con i campi utili del record letto e il campo "VARIAZIONI" per indicare la "tabella" per il join
+        String[] result = new String[3];
+        result[0] = TAB_VARIAZIONI;
+        result[1] = String.valueOf(stockPricesRecord.getClose());
+        result[2] = this.simpleDateFormat.format(stockPricesRecord.getDate());
 
-        //log.info("scrivo la coppia: " + stockPricesRecord.getTicker() + " - " + selectedFieldsOfStockPricesRecordWritable.toString());
-        context.write(new Text(stockPricesRecord.getTicker()), selectedFieldsOfStockPricesRecordWritable);
+        context.write(new Text(stockPricesRecord.getTicker()), new TextArrayWritable(result));
     }
 
     /***

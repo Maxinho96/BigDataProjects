@@ -1,6 +1,5 @@
 package es3.terzoJob;
 
-import es3.customWritables.FloatArrayWritable;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.io.LongWritable;
@@ -8,7 +7,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
 @Slf4j
-public class TerzoMapper extends Mapper<LongWritable, Text, Text, FloatArrayWritable> {
+public class TerzoMapper extends Mapper<LongWritable, Text, Text, Text> {
 
     @SneakyThrows
     @Override
@@ -17,23 +16,13 @@ public class TerzoMapper extends Mapper<LongWritable, Text, Text, FloatArrayWrit
         String[] cols = value.toString().split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
         //log.info(Arrays.toString(cols));
 
-        //la chiave è il nome dell'azienda
-        String resultKey = cols[0];
+        //la chiave sono le tre variazioni medie
+        String resultKey = "2016: " + cols[1] + ", 2017: " + cols[2] + ", 2018: " + cols[3];
 
-        //il valore sono le tre variazioni annue
-        float[] resultValue = new float[3];
-        try {
-            resultValue[0] = Float.parseFloat(cols[1]);
-            resultValue[1] = Float.parseFloat(cols[2]);
-            resultValue[2] = Float.parseFloat(cols[3]);
-        }catch (NumberFormatException e){
-            return; //riga malformattata
-        }
+        //il valore è il nome dell'azienda
+        String resultValue = cols[0];
 
-        //log.info("SCRIVO KEY: " + resultKey + " VALUE: " + Arrays.toString(resultValue));
-
-        context.write(new Text(resultKey), new FloatArrayWritable(resultValue));
-        //log.info("SCRITTO");
+        context.write(new Text(resultKey), new Text(resultValue));
     }
 
 }
