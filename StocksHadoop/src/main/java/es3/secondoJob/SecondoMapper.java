@@ -1,19 +1,14 @@
 package es3.secondoJob;
 
-import es3.customWritables.TextArrayWritable;
+import es3.customWritables.FloatArrayWritable;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-import java.util.Arrays;
-
 @Slf4j
-public class SecondoMapper extends Mapper<LongWritable, Text, Text, TextArrayWritable> {
-
-    private static final String TAB_VARIAZIONI = "variazioni";
-    private static final String TAB_AZIENDE = "aziende";
+public class SecondoMapper extends Mapper<LongWritable, Text, Text, FloatArrayWritable> {
 
     @SneakyThrows
     @Override
@@ -22,21 +17,23 @@ public class SecondoMapper extends Mapper<LongWritable, Text, Text, TextArrayWri
         String[] cols = value.toString().split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
         //log.info(Arrays.toString(cols));
 
-        //proseguo solamente se la lunghezza è 4 o 5
-        if(cols.length != 4 && cols.length != 5)
-            return;
+        //la chiave è il nome dell'azienda
+        String resultKey = cols[0];
 
-        String ticker = cols[0];
-
-        if(cols.length == 4)
-            cols[0] = TAB_VARIAZIONI; //appartiene al file con le variazioni annuali
-        else {
-            String nomeAzienda = cols[2];
-            cols = new String[]{TAB_AZIENDE, nomeAzienda}; //appartiene al file con i nomi delle aziende
+        //il valore sono le tre variazioni annue
+        float[] resultValue = new float[3];
+        try {
+            resultValue[0] = Float.parseFloat(cols[1]);
+            resultValue[1] = Float.parseFloat(cols[2]);
+            resultValue[2] = Float.parseFloat(cols[3]);
+        }catch (NumberFormatException e){
+            return; //riga malformattata
         }
 
-        //log.info("SCRIVO TICKER: " + ticker + " - COLS: " + Arrays.toString(cols));
-        context.write(new Text(ticker), new TextArrayWritable(cols));
+        //log.info("SCRIVO KEY: " + resultKey + " VALUE: " + Arrays.toString(resultValue));
+
+        context.write(new Text(resultKey), new FloatArrayWritable(resultValue));
+        //log.info("SCRITTO");
     }
 
 }

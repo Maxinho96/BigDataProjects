@@ -1,7 +1,6 @@
 package es3.primoJob;
 
 import es3.customWritables.FloatArrayWritable;
-import es3.customWritables.SelectedFieldsOfStockPricesRecordWritable;
 import es3.customWritables.TextArrayWritable;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -12,13 +11,17 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @Slf4j
-public class PrimoReducer extends Reducer<Text, SelectedFieldsOfStockPricesRecordWritable, Text, FloatArrayWritable> {
+public class PrimoReducer extends Reducer<Text, TextArrayWritable, Text, FloatArrayWritable> {
 
+	private static final String TAB_VARIAZIONI = "variazioni";
+	private static final String TAB_AZIENDE = "aziende";
 	private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 	@SneakyThrows
 	@Override
-	public void reduce(Text key, Iterable<SelectedFieldsOfStockPricesRecordWritable> values, Context context) {
+	public void reduce(Text key, Iterable<TextArrayWritable> values, Context context) {
+
+		String nomeAzienda = null;
 
 		//prima data utile di ogni anno
 		Date firstQuotDate2016 = null; // = this.simpleDateFormat.parse("2017-01-01");
@@ -43,65 +46,74 @@ public class PrimoReducer extends Reducer<Text, SelectedFieldsOfStockPricesRecor
 		Date dateField;
 		int year;
 
-		for (SelectedFieldsOfStockPricesRecordWritable value: values) {
+		for (TextArrayWritable value: values) {
+			String[] cols = value.toStrings();
 
-			dateField = this.simpleDateFormat.parse(value.getDate());
-			year = dateField.getYear()+1900;
+			if(cols[0].equals(TAB_AZIENDE)){
+				if(nomeAzienda != null && !nomeAzienda.equals(cols[0]))
+					return; //ho trovato due nomi diversi per la stessa azienda
+				nomeAzienda = cols[1]; //salvo il nome dell'azienda
+			}
+			else if(cols[0].equals(TAB_VARIAZIONI)){
 
-			switch (year){
-				case 2016:
+				dateField = this.simpleDateFormat.parse(cols[2]);
+				year = dateField.getYear()+1900;
 
-					if(firstQuotDate2016 == null && lastQuotDate2016 == null){
-						firstQuotDate2016 = dateField;
-						lastQuotDate2016 = dateField;
-						firstQuotClose2016 = value.getClose();
-						lastQuotClose2016 = value.getClose();
-					}
-					else if(dateField.compareTo(firstQuotDate2016) < 0){
-						firstQuotDate2016 = dateField;
-						firstQuotClose2016 = value.getClose();
-					}
-					else if(dateField.compareTo(lastQuotDate2016) > 0){
-						lastQuotDate2016 = dateField;
-						lastQuotClose2016 = value.getClose();
-					}
-					break;
+				switch (year){
+					case 2016:
 
-				case 2017:
+						if(firstQuotDate2016 == null && lastQuotDate2016 == null){
+							firstQuotDate2016 = dateField;
+							lastQuotDate2016 = dateField;
+							firstQuotClose2016 = Float.parseFloat(cols[1]);
+							lastQuotClose2016 = Float.parseFloat(cols[1]);
+						}
+						else if(dateField.compareTo(firstQuotDate2016) < 0){
+							firstQuotDate2016 = dateField;
+							firstQuotClose2016 = Float.parseFloat(cols[1]);
+						}
+						else if(dateField.compareTo(lastQuotDate2016) > 0){
+							lastQuotDate2016 = dateField;
+							lastQuotClose2016 = Float.parseFloat(cols[1]);
+						}
+						break;
 
-					if(firstQuotDate2017 == null && lastQuotDate2017 == null){
-						firstQuotDate2017 = dateField;
-						lastQuotDate2017 = dateField;
-						firstQuotClose2017 = value.getClose();
-						lastQuotClose2017 = value.getClose();
-					}
-					else if(dateField.compareTo(firstQuotDate2017) < 0){
-						firstQuotDate2017 = dateField;
-						firstQuotClose2017 = value.getClose();
-					}
-					else if(dateField.compareTo(lastQuotDate2017) > 0){
-						lastQuotDate2017 = dateField;
-						lastQuotClose2017 = value.getClose();
-					}
-					break;
+					case 2017:
 
-				case 2018:
+						if(firstQuotDate2017 == null && lastQuotDate2017 == null){
+							firstQuotDate2017 = dateField;
+							lastQuotDate2017 = dateField;
+							firstQuotClose2017 = Float.parseFloat(cols[1]);
+							lastQuotClose2017 = Float.parseFloat(cols[1]);
+						}
+						else if(dateField.compareTo(firstQuotDate2017) < 0){
+							firstQuotDate2017 = dateField;
+							firstQuotClose2017 = Float.parseFloat(cols[1]);
+						}
+						else if(dateField.compareTo(lastQuotDate2017) > 0){
+							lastQuotDate2017 = dateField;
+							lastQuotClose2017 = Float.parseFloat(cols[1]);
+						}
+						break;
 
-					if(firstQuotDate2018 == null && lastQuotDate2018 == null){
-						firstQuotDate2018 = dateField;
-						lastQuotDate2018 = dateField;
-						firstQuotClose2018 = value.getClose();
-						lastQuotClose2018 = value.getClose();
-					}
-					else if(dateField.compareTo(firstQuotDate2018) < 0){
-						firstQuotDate2018 = dateField;
-						firstQuotClose2018 = value.getClose();
-					}
-					else if(dateField.compareTo(lastQuotDate2018) > 0){
-						lastQuotDate2018 = dateField;
-						lastQuotClose2018 = value.getClose();
-					}
-					break;
+					case 2018:
+
+						if(firstQuotDate2018 == null && lastQuotDate2018 == null){
+							firstQuotDate2018 = dateField;
+							lastQuotDate2018 = dateField;
+							firstQuotClose2018 = Float.parseFloat(cols[1]);
+							lastQuotClose2018 = Float.parseFloat(cols[1]);
+						}
+						else if(dateField.compareTo(firstQuotDate2018) < 0){
+							firstQuotDate2018 = dateField;
+							firstQuotClose2018 = Float.parseFloat(cols[1]);
+						}
+						else if(dateField.compareTo(lastQuotDate2018) > 0){
+							lastQuotDate2018 = dateField;
+							lastQuotClose2018 = Float.parseFloat(cols[1]);
+						}
+						break;
+				}
 			}
 		}
 
@@ -124,6 +136,6 @@ public class PrimoReducer extends Reducer<Text, SelectedFieldsOfStockPricesRecor
 		result[1] = diffPercQuot2017;
 		result[2] = diffPercQuot2018;
 
-		context.write(key, new FloatArrayWritable(result));
+		context.write(new Text(nomeAzienda), new FloatArrayWritable(result));
 	}
 }
