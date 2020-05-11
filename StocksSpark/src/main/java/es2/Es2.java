@@ -10,9 +10,8 @@ import scala.*;
 import java.lang.Float;
 import java.lang.Long;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
+import java.util.Locale;
 
 public class Es2 {
 
@@ -22,12 +21,17 @@ public class Es2 {
 
         JavaRDD<String> stocks = sc.textFile(args[0]);
         JavaRDD<String[]> splittedStocks = stocks.map(line -> line.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)"));
-        JavaPairRDD<String, String> mappedStocks = splittedStocks.mapToPair(cols -> new Tuple2<>(cols[0], cols[3]));
+        JavaPairRDD<String, String> mappedStocks = splittedStocks
+                .filter(cols -> !cols[0].equals("ticker"))
+                .mapToPair(cols -> new Tuple2<>(cols[0], cols[3]));
 
         JavaRDD<String> stockPrices = sc.textFile(args[1]);
         JavaRDD<String[]> splittedStockPrices = stockPrices
                 .map(line -> line.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)"))
                 .filter(cols -> {
+                            if(cols[0].equals("ticker")) {
+                                return false;
+                            }
                             int year = new SimpleDateFormat("yyyy-MM-dd").parse(cols[7]).getYear() + 1900;
                             return year >= 2008 && year <= 2018;
                         });
@@ -139,11 +143,30 @@ public class Es2 {
                     return new Tuple5<Float, Long, Float, Integer, Integer>(newClosePricesSum, newVolumesSum, newVariationsSum, newCount, newTickerCount);
                 });
 
-        reducedBySectorYear.saveAsTextFile(args[2]);
+        JavaRDD<String> result = reducedBySectorYear
+                .map(pair ->  {
+                    String sector = pair._1()._1();
+                    Integer year = pair._1()._2();
 
-        // List<Tuple2<String, Integer>> output = counts.collect();
+                    Float closePricesSum = pair._2()._1();
+                    Long volumesSum = pair._2()._2();
+                    Float variationsSum = pair._2()._3();
+                    Integer count = pair._2()._4();
+                    Integer tickerCount = pair._2()._5();
 
-        // counts.saveAsTextFile(args[1]);
+                    Float volumeAvg = volumesSum.floatValue() / tickerCount;
+                    String volumeOutput = String.format(Locale.ROOT, "%.0f", volumeAvg);
+                    Float variationAvg = variationsSum / tickerCount;
+                    String variationOutput = String.format(Locale.ROOT, "%.2f", variationAvg);
+                    Float closePricesAvg = closePricesSum / count;
+                    String closePricesOutput = String.format(Locale.ROOT, "%.2f", closePricesAvg);
+
+                    String[] resultArray = new String[] {sector, year.toString(), volumeOutput, variationOutput, closePricesOutput};
+
+                    return StringUtils.arrayToString(resultArray);
+                });
+
+        result.saveAsTextFile(args[2]);
 
         sc.stop();
     }
