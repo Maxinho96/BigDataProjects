@@ -11,6 +11,7 @@ import java.lang.Float;
 import java.lang.Long;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.Locale;
 
 public class Es3 {
@@ -175,7 +176,41 @@ public class Es3 {
                     return (firstVariation != null) && (secondVariation != null) && (thirdVariation != null);
                 });
 
-        reducedByName.saveAsTextFile(args[2]);
+        // reducedByName.saveAsTextFile(args[2]);
+
+        JavaPairRDD<Tuple3<Integer, Integer, Integer>, LinkedList<String>> mappedByVariations = reducedByName
+                .mapToPair(pair -> {
+                    String name = pair._1();
+                    Tuple3<Integer, Integer, Integer> variations = pair._2();
+
+                    LinkedList<String> names = new LinkedList<>();
+                    names.add(name);
+
+                    return new Tuple2<>(variations, names);
+                });
+        JavaPairRDD<Tuple3<Integer, Integer, Integer>, LinkedList<String>> reducedByVariations = mappedByVariations
+                .reduceByKey((leftNames, rightNames) -> {
+                    leftNames.addAll(rightNames);
+                    return leftNames;
+                });
+
+        JavaRDD<String> result = reducedByVariations
+                .map(pair ->  {
+                    Integer firstVariation = pair._1()._1();
+                    Integer secondVariation = pair._1()._2();
+                    Integer thirdVariation = pair._1()._3();
+
+                    LinkedList<String> names = pair._2();
+                    names.add(firstVariation.toString());
+                    names.add(secondVariation.toString());
+                    names.add(thirdVariation.toString());
+
+                    String[] resultArray = names.toArray(new String[0]);
+
+                    return StringUtils.arrayToString(resultArray);
+                });
+
+        result.saveAsTextFile(args[2]);
     }
 
     private static Integer valueOrNull(Integer value1, Integer value2) {
