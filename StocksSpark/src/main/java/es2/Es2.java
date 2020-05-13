@@ -15,7 +15,7 @@ import java.util.Locale;
 
 public class Es2 {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         SparkConf conf = new SparkConf().setAppName("es2.Es2");
         JavaSparkContext sc = new JavaSparkContext(conf);
 
