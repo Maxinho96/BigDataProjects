@@ -83,7 +83,7 @@ public class Es1 {
 
         //job2.setInputFormatClass(KeyValueTextInputFormat.class);
 
-        //job2.setNumReduceTasks(1);
+        job2.setNumReduceTasks(1);
 
         if (!job2.waitForCompletion(true)) {
             System.out.println("Job2 failed, exiting");
