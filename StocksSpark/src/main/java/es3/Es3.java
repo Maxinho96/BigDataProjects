@@ -195,6 +195,7 @@ public class Es3 {
                 });
 
         JavaRDD<String> result = reducedByVariations
+                .filter(pair -> pair._2().size() > 1)
                 .map(pair ->  {
                     Integer firstVariation = pair._1()._1();
                     Integer secondVariation = pair._1()._2();
