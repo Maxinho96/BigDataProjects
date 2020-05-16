@@ -114,7 +114,7 @@ public class Es3 {
 
         //job3.setInputFormatClass(KeyValueTextInputFormat.class);
 
-        //job3.setNumReduceTasks(1);
+        job3.setNumReduceTasks(1);
 
         if (!job3.waitForCompletion(true)) {
             System.out.println("Job3 failed, exiting");
