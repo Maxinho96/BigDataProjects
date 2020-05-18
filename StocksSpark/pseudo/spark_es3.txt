@@ -1,0 +1,71 @@
+stocks = spark.file(“Stocks”)
+stockPrices = spark.file(“StockPrices”)
+mappedStocks = stocks.filter(remove first row).mapToPair(
+    row -> {
+    extract ticker and sector from row
+    return (ticker, sector)})
+mappedStockPrices = stockPrices.filter(remove first row and years not in 2008-2018).mapToPair(
+    row -> {
+    extract ticker, close_price, volume and date from row
+    return (ticker, [close_price, volume, date])})
+joined = mappedStocks.join(mappedStockPrices)
+
+mappedByNameYearTicker = joined.mapToPair(
+    columns -> {
+        extract ticker, name, close_price and date from columns
+        return ([name, date.year(), ticker], [date, date, close_price, close_price])
+    })
+reducedByNameYearTicker = mappedByNameYearTicker.reduceByKey(
+    (leftColumns, rightColumns) -> {
+        calculate the lowest date and corresponding close_price
+        calculate the highest date and corresponding close_price
+        return previous calculated values
+    })
+
+mappedByNameYear = reducedByNameYearTicker.mapToPair(
+    columns -> {
+        extract column values
+        calculate ticker variation using close_price_1 and close_price_2
+        return([name, date.year()], [variation, 1])
+    })
+reducedByNameYear = mappedByNameYear.reduceByKey(
+    (leftColumns, rightColumns) -> {
+        sum variations
+        sum ticker count value
+        return previous calculated values
+    })
+
+mappedByName = reducedByNameYear.mapToPair(
+    columns -> {
+        extract column values
+        variationAvg = variation average on ticker count
+        if date.year() == 2016:
+            value = (variationAvg, null, null)
+        else if date.year() == 2017:
+            value = (null, variationAvg, null)
+        else if date.year() == 2018:
+            value = (null, null, variationAvg)
+        return(name, value)
+    })
+reducedByName = mappedByName.reduceByKey(
+    (leftColumns, rightColumns) -> {
+        merge leftColumns and rightColumns replacing null values with variationAvg when possible
+    })
+    .filter(remove rows with one or more null values)
+
+mappedByVariations = reducedByName.mapToPair(
+    columns -> {
+        extract column values
+        return([variation2016, variation2017, variation2018], [name])
+    })
+reducedByVariations = mappedByVariations.reduceByKey(
+    (leftColumns, rightColumns) -> {
+        merge leftColumns list with rightColumns list
+        return merged list
+    })
+
+result = reducedByVariations.filter(remove rows with only 1 company).map(
+    columns -> {
+        extract names and variations from columns
+        return [names, variations]
+    })

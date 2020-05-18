@@ -1,0 +1,33 @@
+stockPricesJoinMap(key, record):
+	skip first row (the header)
+	extract ticker, close_price, volume and date from record
+	emit(ticker, [“StockPrices”, close_price, volume, date])
+stocksJoinMap(key, record):
+	skip first row (the header)
+	extract ticker and sector from record
+	emit(ticker, [“Stocks”, sector])
+joinReduce(key, record):
+	sector = record.find(“Stocks”)
+	other_values = record.find(“StockPrices”)
+	for close_price, volume, date in other_values:
+		emit(ticker, [sector, close_price, volume, date])
+
+aggregationsMap(key, record):
+	extract ticker, sector, close_price, volume and date from record
+	if 2008 <= date.year() <= 2018:
+		emit([sector, year], [ticker, close_price, volume, date])
+aggregationsReduce(key, record):
+	for each ticker in record.findTickers():
+		calculate the sum of the volumes
+		tickerToVolumes.put(ticker, volumes_sum)
+		find the first and the last useful date
+		find the first and the last close_price corresponding to the first and the last useful dates
+		tickerToVariations.put(ticker, ((close_price_2 - close_price_1) / close_price_1) * 100)
+	for each close_price in record.findClosePrices():
+		closePricesAvg = average of close_price
+	volumeAvg = tickerToVolumes.values().sum() / tickerToVolumes.values().length()
+	variationAvg = tickerToVariations.values().sum() / tickerToVariations.values().length()
+	emit(key, [volumeAvg, variationAvg, closePricesAvg])
+	
+	
+	
