@@ -1,0 +1,48 @@
+stocks = spark.file(“Stocks”)
+stockPrices = spark.file(“StockPrices”)
+mappedStocks = stocks.filter(remove first row).mapToPair(
+    row -> {
+    extract ticker and sector from row
+    return (ticker, sector)})
+mappedStockPrices = stockPrices.filter(remove first row and years not in 2008-2018).mapToPair(
+    row -> {
+    extract ticker, close_price, volume and date from row
+    return (ticker, [close_price, volume, date])})
+joined = mappedStocks.join(mappedStockPrices)
+mappedBySectorYearTicker = joined.mapToPair(
+    columns -> {
+        extract ticker, sector, close_price, volume and date from columns
+        return ([sector, date.year(), ticker], [close_price, volume, date, date, close_price, close_price, 1])
+    })
+reducedBySectorYearTicker = mappedBySectorYearTicker.reduceByKey(
+    (leftColumns, rightColumns) -> {
+        sum close_prices
+        sum volumes
+        calculate the lowest date and corresponding close_price
+        calculate the highest date and corresponding close_price
+        sum total count value
+        return previous calculated values
+    })
+mappedBySectorYear = reducedBySectorYearTicker.mapToPair(
+    columns -> {
+        extract column values
+        calculate ticker variation using close_price_1 and close_price_2
+        return([sector, date.year()], [closePricesSum, volumesSum, variation, count, 1])
+    })
+reducedBySectorYear = mappedBySectorYear.reduceByKey(
+    (leftColumns, rightColumns) -> {
+        sum close_prices
+        sum volumes
+        sum variations
+        sum total count value
+        sum ticker count value
+        return previous calculated values
+    })
+result = reducedBySectorYear.map(
+    columns -> {
+        extract column values
+        calculate volume average on ticker count
+        calculate variation average on ticker count
+        calculate close_price average on total count
+        return previous calculated values
+    })
