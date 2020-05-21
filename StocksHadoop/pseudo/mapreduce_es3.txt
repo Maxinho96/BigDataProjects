@@ -1,0 +1,140 @@
+primoMapperAziende(key, record):
+	
+	emit(record.ticker, ["TAB_AZIENDE", record.nomeAzienda])
+
+primoMapperVariazioni(key, record):
+	
+	if (record.date < '2016-01-01' or record.date > '2018-12-31')
+        	return
+
+	emit(record.ticker, ["TAB_VARIAZIONI", record.close_price, record.date])
+	
+
+primoReducer(key, record):
+
+	firstQuotDate2016 = firstQuotDate2017 = firstQuotDate2018 = lastQuotDate2016 = lastQuotDate2017 = lastQuotDate2018 = null
+
+	firstQuotClose2016 = lastQuotClose2016 = firstQuotClose2017 = lastQuotClose2017 = firstQuotClose2018 = lastQuotClose2018 = 0
+	
+	for each array in record:
+	
+		if(array.firstValue = "TAB_AZIENDE")
+			nomeAzienda = array.nomeAzienda
+		else
+			switch(array.date.getYear()){
+				case 2016:
+					if (firstQuotDate2016 == null and lastQuotDate2016 == null){
+						firstQuotDate2016 = array.date
+						lastQuotDate2016 = array.date
+						firstQuotClose2016 = array.close_price
+						lastQuotClose2016 = array.close_price
+					}else if(array.date < firstQuotDate2016){
+						firstQuotDate2016 = array.date
+						firstQuotClose2016 = array.close_prize
+					}
+					else if(array.date > lastQuotDate2016){
+						lastQuotDate2016 = array.date
+						lastQuotClose2016 = array.close_prize
+					}
+					break;	
+				case 2017:
+					if (firstQuotDate2017 == null and lastQuotDate2017 == null){
+						firstQuotDate2017 = array.date
+						lastQuotDate2017 = array.date
+						firstQuotClose2017 = array.close_price
+						lastQuotClose2017 = array.close_price
+					}else if(array.date < firstQuotDate2017){
+						firstQuotDate2017 = array.date
+						firstQuotClose2017 = array.close_prize
+					}
+					else if(array.date > lastQuotDate2017){
+						lastQuotDate2017 = array.date
+						lastQuotClose2017 = array.close_prize
+					}
+					break;	
+				case 2018:
+					if (firstQuotDate2018 == null and lastQuotDate2018 == null){
+						firstQuotDate2018 = array.date
+						lastQuotDate2018 = array.date
+						firstQuotClose2018 = array.close_price
+						lastQuotClose2018 = array.close_price
+					}else if(array.date < firstQuotDate2018){
+						firstQuotDate2018 = array.date
+						firstQuotClose2018 = array.close_prize
+					}
+					else if(array.date > lastQuotDate2018){
+						lastQuotDate2018 = array.date
+						lastQuotClose2018 = array.close_prize
+					}
+					break;		
+			}
+
+	if(firstQuotClose2016 == 0 or lastQuotClose2016 == 0 or firstQuotClose2017 == 0 or lastQuotClose2017 == 0 or firstQuotClose2018 == 0 or lastQuotClose2018 == 0)
+		return
+
+	diffPercQuot2016 = ((lastQuotClose2016 - firstQuotClose2016) / firstQuotClose2016)*100;
+	diffPercQuot2017 = ((lastQuotClose2017 - firstQuotClose2017) / firstQuotClose2017)*100;
+	diffPercQuot2018 = ((lastQuotClose2018 - firstQuotClose2018) / firstQuotClose2018)*100;
+
+	emit(nomeAzienda, [diffPercQuot2016, diffPercQuot2017, diffPercQuot2018])
+
+
+
+secondoMapper(key, record):
+
+	emit(record.nomeAzienda, [record.diffPercQuot2016, record.diffPercQuot2017, record.diffPercQuot2018])
+
+
+secondoReducer(key, record):
+
+	sumVariazioni2016 = sumVariazioni2017 = sumVariazioni2018 = totTickers = 0
+
+
+	for each array in record: 
+		sumVariazioni2016 += array.diffPercQuot2016
+		sumVariazioni2017 += array.diffPercQuot2017
+		sumVariazioni2018 += array.diffPercQuot2018
+		totTickers++
+
+	mediaVariazioni2016RoundedDown = roundDown(sumVariazioni2016 / totTickers)
+	mediaVariazioni2017RoundedDown = roundDown(sumVariazioni2017 / totTickers);
+	mediaVariazioni2018RoundedDown = roundDown(sumVariazioni2018 / totTickers);
+
+
+	emit(key, [mediaVariazioni2016RoundedDown, mediaVariazioni2017RoundedDown, mediaVariazioni2018RoundedDown])
+
+
+terzoMapper(key, record):
+
+	emit([record.mediaVariazioni2016RoundedDown, record.mediaVariazioni2017RoundedDown, record.mediaVariazioni2018RoundedDown], record.nomeAzienda)
+
+
+terzoReducer(key, record):
+
+	totAziende = 0
+	aziende = ""
+
+	for each array in record:
+		totAziende++
+		aziende.concat(array.nomeAzienda)
+	
+	if(totAziende > 1)
+		emit(aziende, key)	
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,59 @@
+stockPrices = spark.file(“StockPrices”)
+
+splittedStockPrices = stockPrices.map( 
+	line -> { extract all fields from line })
+	.filter(remove malformed rows and rows with years < 2008 or > 2018)
+	
+mappedStockPrices = splittedStockPrices.mapToPair(
+	cols -> { 
+			minDate = maxDate = cols.date
+			closeOfMinDate = closeOfMaxDate = minClose = maxClose = cols.close_price
+			sumVolume = cols.volume
+			totVolume = 1
+			return (cols.ticker, [minDate, maxDate, closeOfMinDate, closeOfMaxDate, minClose, maxClose, sumVolume, totVolume]) 
+	})
+
+reducedStockPrices = mappedStockPrices.reduceByKey( 
+	(leftArray, rightArray) -> {
+		minClose = min(leftArray.minClose, rightArray.minClose)
+		maxClose = max(leftArray.maxClose, rightArray.maxClose)
+		sumVolume = leftArray.sumVolume + rightArray.sumVolume
+		totVolume = leftArray.totVolume + rightArray.totVolume
+		
+		if (leftArray.minDate < rightArray.minDate)
+			minDate = leftArray.minDate
+			closeOfMinDate = leftArray.close_price
+		else
+			minDate = rightArray.minDate
+			closeOfMinDate = rightArray.close_price
+		
+		if (leftArray.maxDate > rightArray.maxDate)
+			maxDate = leftArray.maxDate
+			closeOfMaxDate = leftArray.close_price
+		else
+			maxDate = rightArray.maxDate
+			closeOfMaxDate = rightArray.close_price
+		
+		return ([minDate, maxDate, closeOfMinDate, closeOfMaxDate, minClose, maxClose, sumVolume, totVolume])
+	})
+
+
+sortedDataWithVarPercRoundedDownAsKey = reducedStockPrices.mapToPair(
+	tuple -> {
+		varPercRoundedDown = roundDown( ((tuple.values.closeOfMaxDate - tuple.values.closeOfMinDate) / tuple.values.closeOfMinDate) * 100)
+		avgVolume = tuple.values.sumVolume / tuple.values.totVolume
+		
+		return (varPercRoundedDown, [tuple.key, tuple.values.minClose, tuple.values.maxClose, avgVolume)
+	}).sortByKeyDescending()
+
+result = sortedDataWithVarPercRoundedDownAsKey.map(
+
+	tuple -> {
+		return (tuple.values.ticker, tuple.key, tuple.values.minClose, tuple.values.maxClose, tuple.values.avgVolume)
+
+
+
+
+
+
+
