@@ -1,0 +1,70 @@
+
+primoMapper(key, record):
+    
+	if (record.date < '2008-01-01' or record.date > '2018-12-31')
+		return
+
+	extract ticker, close_price, volume and date from record
+    	emit(ticker, [close_price, volume, date])
+
+
+primoReducer(key, record):
+	
+	initialize minClose,maxClose,firstQuotDate,lastQuotDate,firstQuotClose,lastQuotClose,sumVolume,totVolume with first array in record and remove that array from record
+
+	for each array in record:
+
+		sumVolume += array.volume
+		totVolume ++
+
+		if (array.close_price < minClose)
+			minClose = record.close_price
+
+		else if (array.close_price > maxClose)		
+			maxClose = record.close_price
+
+		if (array.date < firstQuotDate)
+			firstQuotDate = record.date
+			firstQuotClose = record.close
+
+		else if (array.date > lastQuotDate)
+			lastQuotDate = record.date
+			lastQuotClose = record.close
+			
+	diffPercQuotRoundedDown = roundDown( ((lastQuotClose - firstQuotClose) / firstQuotClose) * 100)
+	avgVolume = sumVolume / totVolume
+
+	emit(ticker, [diffPercQuotRoundedDown, minClose, maxClose, avgVolume])
+	
+
+secondoMapper(key, record):
+
+	emit(record.diffPercQuotRoundedDown, [record.ticker, record.minClose, record.maxClose, record.avgVolume])
+
+//between mapper and reducer
+do shuffle&sort with custom comparator class that orders keys in descending order
+
+
+secondoReducer(key, record):
+
+	emit(record.ticker, [key, record.minClose, record.maxClose, record.avgVolume])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
