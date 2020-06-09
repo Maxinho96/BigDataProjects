@@ -1,1 +1,1 @@
-BigDataProjects by Marco Berbeglia and Massimiliano Bruni.
+BigDataProjects by Marco Berbeglia and Massimiliano Bruni
